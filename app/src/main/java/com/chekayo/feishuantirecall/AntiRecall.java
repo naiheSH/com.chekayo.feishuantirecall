@@ -59,7 +59,7 @@ public class AntiRecall implements IXposedHookLoadPackage, IXposedHookZygoteInit
     static final String MAPPER = "ax2.b";
 
     // 签名自校验: 运行 APK 的证书 SHA-256(=SHA256(signature.toByteArray()))。重打包必须重签名 -> 证书变 -> 检测到篡改。
-    static final String EXPECTED_SIG = "0cc1410f036279be41e112726687480a92e9f0a3bb5bfae09c9a23c4a764ccfd";
+    static final String EXPECTED_SIG = "bcf8f6c75e57e2fa66d007329daa2a252d4267f7c8b2994248a5b858c3a20751";
     // 0=未判定, 1=正版, 2=被篡改(重签名)。篡改则禁用核心功能(防撤回/防已读) + 面板告警。
     static volatile int TAMPER = 0;
     static final String STATUS = "com.ss.android.lark.chat.entity.message.Message$Status";
@@ -586,13 +586,8 @@ public class AntiRecall implements IXposedHookLoadPackage, IXposedHookZygoteInit
             }
             if (ctx != null) Diag.w("飞书版本 = " + feishuVersion());
 
-            // ★ 签名自校验: 被重打包(重签名)则禁用核心功能, 不装 native hook。
-            TAMPER = checkSignature(ctx) ? 1 : 2;
-            if (TAMPER == 2) {
-                XposedBridge.log("[fucklark] 签名不匹配, 疑似被篡改/重打包 -> 禁用防撤回/防已读");
-                Diag.w("⚠️ 签名校验失败: 本模块被篡改/重打包, 已禁用核心功能。请从官方渠道重新下载。");
-                return;   // 不进入 native 安装循环 -> 无防撤回
-            }
+            // 自用 fork：跳过签名自校验，任意签名均视为正版
+            TAMPER = 1;
 
             for (int i = 0; i < 800; i++) {       // ~120s @150ms
                 try {

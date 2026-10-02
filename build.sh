@@ -133,8 +133,11 @@ echo; echo "== 6. zipalign =="
 "$ZIPALIGN" -p -f 4 "$BUILD/app-unsigned.apk" "$BUILD/app-aligned.apk"
 
 echo; echo "== 7. apksigner sign =="
-"$APKSIGNER" sign --ks "$KS" --ks-pass pass:android \
-  --ks-key-alias androiddebugkey --key-pass pass:android \
+_KS_PASS="${KEYSTORE_PASS:-android}"
+_KS_ALIAS="${KEYSTORE_ALIAS:-androiddebugkey}"
+_KEY_PASS="${KEY_PASS:-android}"
+"$APKSIGNER" sign --ks "$KS" --ks-pass "pass:$_KS_PASS" \
+  --ks-key-alias "$_KS_ALIAS" --key-pass "pass:$_KEY_PASS" \
   --out "$PROJ/feishu-antirecall.apk" "$BUILD/app-aligned.apk"
 
 echo; echo "== DONE =="
